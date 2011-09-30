@@ -63,16 +63,22 @@ function delete_meta_by_blog_id( $blog_id = 0 ) {
  *
  * @param string $meta_key meta key
  * @param string $meta_value meta value
+ * @param boolean $single flag for return one line or one col
  * @return mixed {@internal Missing Description}}
  */
-function get_blog_id_from_meta( $meta_key = '', $meta_value = '' ) {
+function get_blog_id_from_meta( $meta_key = '', $meta_value = '', $single = false ) {
 	global $wpdb;
 	
-	$key = md5( $meta_key . $meta_value );
+	$key = md5( $meta_key . $meta_value . $single );
 	
 	$result = wp_cache_get( $key, 'blog_meta' );
 	if ( false === $result ) {
-		$result = (int) $wpdb->get_var( $wpdb->prepare("SELECT blog_id FROM $wpdb->blogmeta WHERE meta_key = %s AND meta_value = %s", $meta_key, $meta_value ) );
+		if ( $single == true ) {
+			$result = (int) $wpdb->get_var( $wpdb->prepare("SELECT blog_id FROM $wpdb->blogmeta WHERE meta_key = %s AND meta_value = %s", $meta_key, $meta_value ) );
+		} else {
+			$result = $wpdb->get_col( $wpdb->prepare("SELECT blog_id FROM $wpdb->blogmeta WHERE meta_key = %s AND meta_value = %s", $meta_key, $meta_value ) );
+		}
+		
 		wp_cache_set( $key, $result, 'blog_meta' );
 	}
 	
